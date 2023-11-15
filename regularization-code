@@ -1,0 +1,209 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# import libraries\n",
+    "from sklearn import linear_model\n",
+    "from sklearn.linear_model import LinearRegression, Ridge, Lasso\n",
+    "from sklearn.preprocessing import PolynomialFeatures\n",
+    "from sklearn.metrics import mean_squared_error\n",
+    "import numpy as np\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "    Unnamed: 0         x         y\n",
+      "0            0  0.000000  0.442580\n",
+      "1            1  0.052632  0.750379\n",
+      "2            2  0.105263  0.982555\n",
+      "3            3  0.157895  0.853643\n",
+      "4            4  0.210526  1.141193\n",
+      "5            5  0.263158  0.831381\n",
+      "6            6  0.315789  1.147227\n",
+      "7            7  0.368421  1.010907\n",
+      "8            8  0.421053  0.664553\n",
+      "9            9  0.473684  0.334169\n",
+      "10          10  0.526316 -0.058656\n",
+      "11          11  0.578947 -0.589828\n",
+      "12          12  0.631579 -0.569363\n",
+      "13          13  0.684211 -0.869054\n",
+      "14          14  0.736842 -1.166119\n",
+      "15          15  0.789474 -1.304733\n",
+      "16          16  0.842105 -0.830502\n",
+      "17          17  0.894737 -0.538124\n",
+      "18          18  0.947368 -0.485276\n",
+      "19          19  1.000000 -0.167024\n"
+     ]
+    }
+   ],
+   "source": [
+    "# read traning data\n",
+    "pd_train = pd.read_csv(\"C:\\\\Users\\Mahija\\Downloads\\exercise_3_training.csv\")\n",
+    "\n",
+    "# print the dataframe\n",
+    "print(pd_train)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# create the input and output attributes\n",
+    "inp_attr = pd_train['x'].values.reshape(-1, 1) \n",
+    "\n",
+    "# generate the nonlinear features\n",
+    "poly_order = 20\n",
+    "poly = PolynomialFeatures(poly_order,include_bias=False)\n",
+    "inp_feat = poly.fit_transform(inp_attr)\n",
+    "#print(inp_feat)\n",
+    "out_attr = pd_train['y'].values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(20, 20)"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "inp_feat.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "coef =  [-1.03352367 -0.         -0.         -0.         -0.         -0.\n",
+      " -0.         -0.         -0.         -0.         -0.         -0.\n",
+      "  0.          0.          0.          0.          0.          0.\n",
+      "  0.          0.        ]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# L2 penalty - vary alpha and observe the magnitude of the coeff and the errors\n",
+    "# Note that regularization coefficient - alpha=lambda (in the lecture)\n",
+    "# alpha = 0.0\n",
+    "# alpha = 0.1\n",
+    "# alpha = 100\n",
+    "l2 = Lasso(alpha=0.1)\n",
+    "#l2 = Lasso(alpha=100)\n",
+    "#l2 = linear_model.LinearRegression(fit_intercept=True)\n",
+    "l2.fit(inp_feat, out_attr)\n",
+    "print('coef = ', l2.coef_)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# read testing data\n",
+    "pd_test = pd.read_csv(\"C:\\\\Users\\Mahija\\Downloads\\exercise_2_testing.csv\")\n",
+    "\n",
+    "# create the input and output attributes\n",
+    "test_inp_attr = pd_test['x'].values.reshape(-1, 1) \n",
+    "\n",
+    "# generate the nonlinear features\n",
+    "test_inp_feat = poly.fit_transform(test_inp_attr)\n",
+    "test_out_attr = pd_test['y'].values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "L2 - MSE train =  0.34234948898867806\n",
+      "L2 - MSE test =  0.29585925137454405\n"
+     ]
+    }
+   ],
+   "source": [
+    "# L2 - model performance\n",
+    "l2_train_pred = l2.predict(inp_feat)\n",
+    "print('L2 - MSE train = ', mean_squared_error(l2_train_pred,out_attr))\n",
+    "\n",
+    "l2_test_pred = l2.predict(test_inp_feat)\n",
+    "print('L2 - MSE test = ', mean_squared_error(l2_test_pred,test_out_attr))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#2.1 Setting alpha to 0.1 can result in a more generalizable model by slightly reducing the model`s fit to the training data.The strength of the regularization depends on the alpha value, with higher values resulting in greater regularization.\n",
+    "#2.2 The regularization term in the loss function becomes dominant when alpha is set to a high value, such as 100 in a model with L1 regularization, leading to a substantial penalty for models with high parameter values.By effectively \"shrinking\" the model parameters/coefficients towards zero, this leads to a model that is simpler and easier to understand.\n",
+    "#2.3 A lower MSE often denotes a better match between the model and the data. The particular problem and dataset being used will determine how to compare the MSE between models with alpha=0.1 and alpha=100. However, because it is less likely to overfit, the model with alpha=100 can have a lower MSE on the test data (i.e., be more generalizable)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#4.1 The magnitude of the model parameters, also known as coefficients, in a regularized model will depend on the value of the regularization term, alpha. In general, the magnitude of the model parameters will be smaller in models with high values of alpha, as the regularization term will penalize models with large coefficients. The L1 regularization used in models with alpha values greater than 0 will result in sparse solutions, meaning that some of the coefficients will be exactly equal to zero, while others will be small in magnitude.\n",
+    "#4.2 Low training MSE and high testing MSE: This indicates that the model is underfitting the data and is not complex enough to capture the relationships in the data. Similar training and testing MSE: This indicates that the model is likely to be a good fit for the data and is not overfitting or underfitting the data.\n",
+    "#4.3 It is difficult to determine whether a linear regression model is better than the previous two Lasso models without knowing the specific problem, dataset, and evaluation metrics being used. Whether a linear regression model or a Lasso model is preferred will depend on the specific problem and dataset at hand."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
